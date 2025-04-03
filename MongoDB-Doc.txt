@@ -1,0 +1,177 @@
+MongoDB-
+NoSQL DB.
+Semi-Structured or Unstructured DB.
+
+-----------------------------------------------------------------------------------------------------------------------
+
+Start MongoDB--
+By default, MongoDB will run on port 27017.
+
+Start the MongoDB server by run command-
+"C:\Program Files\MongoDB\Server\{version}\bin\mongod.exe"
+
+Once the mongod process is running, you can connect to MongoDB by opening a new terminal window and typing: mongo
+This will start the MongoDB shell, and you should be connected to the MongoDB instance running on your local machine.
+
+-------------------------------------------------------------------------------------------------------------------------
+
+#list all databases
+show dbs
+
+# create and use db test
+use test
+
+#shows current used db
+db 
+
+show collections  - list all colections in db
+db.createCollection('Users') - create collection users
+db.Users.insert({name:'Sanskar'}) - insert data in collection if not exist it will create
+
+db.users.drop()  -> delete a collection
+db.dropDatabase() -> delete a db
+
+db.books.find() -> find all records
+db.books.find().pretty() -> gives proper format
+db.books.find().limit(5) -> limit the data records
+db.books.find().sort({price:1}).pretty() -> sort data in asc order (-1 for desc order)
+
+
+#INSERT -------------------------------------------------------------------------------------
+
+db.post.insertOne({
+  "role":"java",
+  "experience": 2,
+  "description": "This is desccription",
+  "locations":["Mumbai","Pune"]
+})
+
+
+db.post.insertMany([{
+  "role":"python",
+  "experience": 2,
+  "description": "This is desccription",
+  "locations":["Mumbai","indore"]
+},
+{
+  "role":"android",
+  "experience": 2,
+  "description": "This is desccription",
+  "locations":["Banglore"]
+}
+])
+
+#UPDATE ----------------------------------------------------------------------------------------
+
+db.collection.updateMany(
+  <filter>,     // Criteria to match the documents
+  <update>,     // The update to apply
+  <options>     // Optional options
+)
+
+
+db.post.updateOne(
+{"role":"python"},
+{$set: {"experience": 5 , "description": "This is python"}})
+if field not found it will create a new field.
+
+#It will apply on each document whose filter matches.
+db.post.updateMany(
+{"experience":2},
+{$inc: { "experience" : 1}}
+)
+
+#This replaces the entire document with the new one.
+db.post.replaceOne(
+  {"role":"python" },               
+  { "role":"python",
+  "experience": 2,
+  "description": "This is desccription",
+  "locations":["Mumbai","indore"] } )
+
+
+MongoDB provides several update operators to manipulate fields inside documents. Here are some of the most commonly used ones:
+
+$set: Update specific fields
+The $set operator updates the value of a field.
+
+$inc -> increment data by value
+$push -> insert data into array
+db.post.updateOne({
+"role":"android"} ,
+{ $push: {"locations": "Pune"}})
+
+db.users.updateOne(
+  { "role":"android" }, 
+  { $push: { locations: { $each: ["Pune", "Mumbai", "Chennai"] } } }
+)
+
+$pull -> removes record from array
+$unset -> removes the field
+
+db.post.updateOne({
+role: "python"} , {
+$unset : {locations : ""})
+
+db.post.updateOne(
+  { role: "python" },
+  { $set: { locations: ["Mumbai","Banglore"] } },
+  { upsert: true }
+)
+
+
+#DELETE --------------------------------------------------------------------------------------------------
+
+db.collection.deleteOne(<filter>)
+
+db.post.deleteOne({role:"java"})
+db.post.deleteMany({ experience: 1 })
+
+db.post.deleteMany({}) -> passing empty filter to deleteOne() or deleteMany() will delete all the documents from collection.
+db.post.deleteOne({ _id: ObjectId("60f7a6b9a3b8c7f60f8815d5") })
+
+db.post.findAndRemove({ role: "python" })  -> remove and return the document
+
+
+#SELECT ----------------------------------------------------------------------------------------------------
+
+db.collection.find(<filter>)
+
+db.post.find() -> get all documents
+db.post.find({role : "python"})
+
+$gt, $lt, $gte, $lte
+db.post.find({ experience: { $gt: 2 } })
+
+$and, $or (Logical AND, OR)
+db.post.find({ $and: [{ role: "python" }, { experience: {$gt : 2} }] })
+
+db.post.find({ locations: { $in: ["Mumbai", "Banglore"] } })
+db.post.find({ experience: { $nin: [1, 4] } })
+
+db.post.find({ description : { $exists: true } })
+
+----------------------------------------------------------------------------------------------------------------------
+
+#Projection 
+Projection allows you to specify which fields to include or exclude in the results. By default, all fields are returned.
+
+db.post.find({}, { role: 1, experience: 1 })
+db.post.find({<Filter>}, { locations: 0 })
+
+#Sort
+You can sort the results by a field in ascending (1) or descending (-1) order using .sort().
+db.post.find().sort({ experience: 1 })
+
+db.post.find().limit(5)  -> limit the document to 5
+db.post.find().skip(2).limit(5)  -> skip first 2 doc and get only 5 doc
+
+regex
+db.post.find({ description: /py/ })  -> find docs whose desc contaions sub-strings
+
+findOne() is used to get only one document which it get first.
+db.collection.findOne(<filter>)
+
+To understand how MongoDB is executing a query and whether it's using an index, you can use the .explain() method:
+db.post.find({ role: "python" }).explain()
+
